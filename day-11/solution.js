@@ -13,9 +13,13 @@ function maxFixedSquare (grid, gridSize, size) {
   let max = [-Infinity]
   for (let x = 0; x <= gridSize - size; x++) {
     for (let y = 0; y <= gridSize - size; y++) {
-      let power = grid[x][y] + grid[x][y + 1] + grid[x][y + 2] +
-                  grid[x + 1][y] + grid[x + 1][y + 1] + grid[x + 1][y + 2] +
-                  grid[x + 2][y] + grid[x + 2][y + 1] + grid[x + 2][y + 2]
+      let power = 0
+      for (let dx = 0; dx < size; dx++) {
+        for (let dy = 0; dy < size; dy++) {
+          power += grid[x + dx][y + dy]
+        }
+      }
+
       if (power > max[0]) {
         max = [power, [x + 1, y + 1]]
       }
