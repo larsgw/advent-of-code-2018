@@ -1,10 +1,18 @@
-// const input = $0.textContent.trim()
-const input = `/->-\\        
+const input = $0.textContent.replace(/\n$/, '')
+/*const input = `/->-\\        
 |   |  /----\\
 | /-+--+-\\  |
 | | |  | v  |
 \\-+-/  \\-+--/
-  \\------/`
+  \\------/`*/
+/*const input = `/>-<\\  
+|   |  
+| /<+-\\
+| | | v
+\\>+</ |
+  |   ^
+  \\<->/`*/
+const element = $0
 
 const directions = ['>', 'v', '<', '^']
 
@@ -36,9 +44,15 @@ function processIntersection (cart) {
   cart[3]++
 }
 
-function firstCollision (map, carts) {
-  carts = carts.slice()
+function serializeMap (map, carts) {
+  map = map.map(row => row.slice())
 
+  carts.forEach(([cart, x, y]) => map[y][x] = '<span style="color:white;background:black">' + cart + '</span>')
+
+  return map.map(row => row.join('')).join('\n')
+}
+
+function firstCollision (map, carts) {
   while (true) {
     carts.sort(([xa, ya], [xb, yb]) => ya - yb || xa - xb)
     for (let cart of carts) {
@@ -49,18 +63,43 @@ function firstCollision (map, carts) {
         case 'v': cart[2]++ ; break
       }
 
-      debugger
       switch (map[cart[2]][cart[1]]) {
         case '+': processIntersection(cart); break
-        case '/': cart[0] = turn(cart[0], cart[0] === '^'); break
-        case '\\': cart[0] = turn(cart[0], cart[0] === '>'); break
-        case '>':
-        case '<':
-        case '^':
-        case 'v': return [x, y]
+        case '/': cart[0] = turn(cart[0], cart[0] === '^' || cart[0] === 'v'); break
+        case '\\': cart[0] = turn(cart[0], cart[0] === '>' || cart[0] === '<'); break
+      }
+
+      if (carts.filter(([_, x, y]) => cart[1] === x && cart[2] === y).length > 1) {
+        return cart.slice(1, 3)
       }
     }
   }
 }
 
-console.log('star 1:', firstCollision(map, carts))
+console.log('star 1:', firstCollision(map, carts.map(cart => cart.slice())).join())
+
+function lastCart (map, carts) {
+  while (carts.length > 1) {
+    carts.sort(([xa, ya], [xb, yb]) => ya - yb || xa - xb)
+    for (let cart of carts) {
+      switch (cart[0]) {
+        case '>': cart[1]++ ; break
+        case '<': cart[1]-- ; break
+        case '^': cart[2]-- ; break
+        case 'v': cart[2]++ ; break
+      }
+
+      switch (map[cart[2]][cart[1]]) {
+        case '+': processIntersection(cart); break
+        case '/': cart[0] = turn(cart[0], cart[0] === '^' || cart[0] === 'v'); break
+        case '\\': cart[0] = turn(cart[0], cart[0] === '>' || cart[0] === '<'); break
+      }
+    }
+
+    carts = carts.filter(a => carts.every(b => a === b || a[1] !== b[1] || a[2] !== b[2]))
+  }
+
+  return carts[0].slice(1, 3)
+}
+
+console.log('star 2:', lastCart(map, carts.map(cart => cart.slice())).join())
